@@ -8,22 +8,9 @@
     android:layout_marginStart="16dp"
     android:background="@color/white">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/user_name"
-        android:text="Szabo Ferko"/>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="ferko@ferko.hu"
-        android:textSize="16dp"/>
-
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginTop="30dp"/>
-
 
 </LinearLayout>

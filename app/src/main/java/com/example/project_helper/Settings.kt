@@ -2,14 +2,12 @@ package com.example.project_helper
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import java.io.File
 
 
 class Settings : BaseActivity() {
@@ -18,25 +16,23 @@ class Settings : BaseActivity() {
     private lateinit var saveButton: Button
     private lateinit var fileLocationText: TextView
     private lateinit var usernameEditText: EditText
-    private lateinit var encryptedFile: File
-    private lateinit var decryptedFile: File
-    private lateinit var fileData: String
+    val cryptoHelper = CryptographyHelper(this)
 
     private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
             val uri = data?.data
-            // This part is responsible for handling the file the user selected.
+
             if (uri != null) {
-                infraKey = uri;
-                fileLocationText.text="file selected:\n"+infraKey
+                //reads the file's content and encrypts it, then saves the data into the encryptedInfraKey variable
+                cryptoHelper.encryptedInfraKey = cryptoHelper.encryptData(fileFromContentUri(this,uri).readText(charset = Charsets.UTF_8))
+                fileLocationText.setText("File selected")
                 Toast.makeText(this, "File selected: $uri", Toast.LENGTH_SHORT).show()
             }
         } else {
             Toast.makeText(this, "File selection canceled.", Toast.LENGTH_SHORT).show()
         }
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,17 +42,17 @@ class Settings : BaseActivity() {
         fileLocationText = findViewById(R.id.key_file_path)
         usernameEditText = findViewById(R.id.username_text)
         saveButton= findViewById(R.id.save_button)
-        decryptedFile = File(cacheDir, "decryptedFile.temp")
 
+        cryptoHelper.generateKey()
+        cryptoHelper.loadCredentials()
 
-        usernameEditText.setText(infraUsername)
-        fileLocationText.text="file selected:\n"+infraKey
+        usernameEditText.setText(cryptoHelper.encryptedInfraUsername)
 
         filePickerButton.setOnClickListener{showFileChooser()}
         saveButton.setOnClickListener{
 
-            infraUsername = usernameEditText.text.toString()
-            saveCredentials()
+            cryptoHelper.encryptedInfraUsername = cryptoHelper.encryptData(usernameEditText.text.toString())
+            cryptoHelper.saveCredentials()
         }
     }
 
@@ -71,15 +67,5 @@ class Settings : BaseActivity() {
         } catch (exception: Exception) {
             Toast.makeText(this, "Please install a file manager.", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun fileChooserButtonLogic(uri: Uri){
-
-        encryptedFile = fileFromContentUri(this,uri)
-        decryptFileWithPBKDF2(encryptedFile, decryptedFile, "password")
-        fileData = decryptedFile.readText()
-
-        fileLocationText.text="encrypted:\n"+encryptedFile.readText()+"\ndecrypted:\n"+fileData
-        println("thins is: "+ fileData)
     }
 }

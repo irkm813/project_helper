@@ -12,7 +12,7 @@ import androidx.core.view.WindowInsetsCompat
 
 class PinActivity : AppCompatActivity() {
 
-    private val correctPin = "1234"
+    val cryptoHelper = CryptographyHelper(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,13 +24,22 @@ class PinActivity : AppCompatActivity() {
             insets
         }
 
+        cryptoHelper.generateKey()
+        cryptoHelper.loadCredentials()
+
+        if (cryptoHelper.encryptedPinCode == ""){
+            val intent = Intent(this, FirstTimeSetupActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
         val pinEditText: EditText = findViewById(R.id.pinEditText)
         val submitButton: Button = findViewById(R.id.submitButton)
 
         submitButton.setOnClickListener {
             val enteredPin = pinEditText.text.toString()
 
-            if (enteredPin == correctPin) {
+            if (enteredPin == cryptoHelper.decryptData(cryptoHelper.encryptedPinCode.toString())) {
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
                 finish()
